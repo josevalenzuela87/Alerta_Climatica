@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Validator</title>
+</head>
+<body>
+    <h1>Test de Validator.js</h1>
+    <div id="resultado"></div>
+
+    <script src="utils/Validator.js"></script>
+    <script>
+        const resultadoDiv = document.getElementById('resultado');
+        
+        try {
+            // Probar si Validator está definido
+            if (typeof Validator !== 'undefined') {
+                resultadoDiv.innerHTML = '<p style="color: green;">✅ Validator.js cargado correctamente!</p>';
+                
+                // Hacer una prueba de validación
+                const emailTest = Validator.validateEmail('test@example.com');
+                resultadoDiv.innerHTML += `<p>Test de email: ${emailTest.valid ? '✅ Válido' : '❌ Inválido'}</p>`;
+                resultadoDiv.innerHTML += `<p>Mensaje: ${emailTest.message}</p>`;
+            } else {
+                resultadoDiv.innerHTML = '<p style="color: red;">❌ Validator no está definido</p>';
+            }
+        } catch (error) {
+            resultadoDiv.innerHTML = `<p style="color: red;">❌ Error: ${error.message}</p>`;
+        }
+    </script>
+</body>
+</html>
+

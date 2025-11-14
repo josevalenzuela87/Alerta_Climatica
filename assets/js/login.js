@@ -15,11 +15,41 @@
 let authController = null;
 
 /**
+ * Verifica que todas las dependencias estén cargadas
+ */
+function checkDependencies() {
+    const required = {
+        'EnvLoader': typeof EnvLoader !== 'undefined',
+        'Validator': typeof Validator !== 'undefined',
+        'FirebaseService': typeof FirebaseService !== 'undefined',
+        'AuthRepository': typeof AuthRepository !== 'undefined',
+        'AuthController': typeof AuthController !== 'undefined'
+    };
+
+    const missing = Object.keys(required).filter(dep => !required[dep]);
+    
+    if (missing.length > 0) {
+        console.error('❌ Dependencias faltantes:', missing);
+        alert('Error: No se pudieron cargar todos los archivos necesarios.\n\nDependencias faltantes: ' + missing.join(', ') + '\n\nPor favor:\n1. Presiona Ctrl+Shift+R para recargar\n2. O limpia la caché del navegador');
+        return false;
+    }
+    
+    console.log('✓ Todas las dependencias cargadas correctamente');
+    return true;
+}
+
+/**
  * Inicializa la aplicación
  */
 async function initializeApp() {
     try {
         console.log('→ Inicializando aplicación de login...');
+
+        // Verificar dependencias
+        if (!checkDependencies()) {
+            hideLoading();
+            return;
+        }
 
         // Mostrar spinner
         showLoading();
