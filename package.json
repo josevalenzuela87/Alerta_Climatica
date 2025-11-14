@@ -1,0 +1,23 @@
+{
+  "name": "alerta-climatica",
+  "version": "1.0.0",
+  "description": "Sistema de alertas climáticas con autenticación Firebase",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx http-server -p 8000 -o",
+    "dev": "npx http-server -p 8000 -o"
+  },
+  "keywords": [
+    "clima",
+    "alertas",
+    "firebase",
+    "mvc",
+    "html5",
+    "bootstrap"
+  ],
+  "author": "AlertaClimática Team",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {}
+}
+
