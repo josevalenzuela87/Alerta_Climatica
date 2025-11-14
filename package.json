@@ -17,7 +17,7 @@
   ],
   "author": "AlertaClimática Team",
   "license": "MIT",
-  "dependencies": {},
-  "devDependencies": {}
+  "dependencies": {
+    "firebase": "^12.6.0"
+  }
 }
-
