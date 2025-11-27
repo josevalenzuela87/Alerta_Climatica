@@ -40,6 +40,12 @@ class FirebaseService {
     #firebaseAuth = null;
 
     /**
+     * Instancia de Firebase Firestore
+     * @private
+     */
+    #firestore = null;
+
+    /**
      * Estado de inicialización
      * @private
      */
@@ -107,12 +113,30 @@ class FirebaseService {
             // Inicializar Firebase
             this.#firebaseApp = firebase.initializeApp(firebaseConfig);
             this.#firebaseAuth = firebase.auth();
-
+            
             // Configurar persistencia de sesión
             await this.#firebaseAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 
+            // Inicializar Firestore (con manejo de errores)
+            try {
+                this.#firestore = firebase.firestore();
+                
+                // Firestore se configura automáticamente con valores por defecto
+                // No necesitamos configurar settings manualmente para evitar warnings
+                
+                console.log('✓ Firebase Firestore configurado');
+            } catch (firestoreError) {
+                console.warn('⚠️ No se pudo inicializar Firestore (puede que no esté habilitado):', firestoreError.message);
+                console.warn('⚠️ La aplicación funcionará pero sin acceso a Firestore');
+                // No lanzamos error, solo advertimos
+            }
+
             this.#initialized = true;
             console.log('✓ Firebase inicializado correctamente');
+            console.log('✓ Firebase Auth configurado');
+            if (this.#firestore) {
+                console.log('✓ Firebase Firestore configurado');
+            }
             console.log('✓ Proyecto:', config.FIREBASE_PROJECT_ID);
 
             return true;
@@ -196,6 +220,30 @@ class FirebaseService {
             return null;
         }
         return this.#firebaseAuth.currentUser;
+    }
+
+    /**
+     * Obtiene la instancia de Firebase Firestore
+     * @returns {firebase.firestore.Firestore|null} Instancia de Firestore o null si no está disponible
+     * @throws {Error} Si Firebase no está inicializado
+     */
+    getFirestore() {
+        if (!this.#initialized) {
+            throw new Error('Firebase no está inicializado. Llama a initialize() primero.');
+        }
+        if (!this.#firestore) {
+            console.warn('⚠️ Firestore no está disponible. Verifica que esté habilitado en Firebase Console.');
+            return null;
+        }
+        return this.#firestore;
+    }
+
+    /**
+     * Verifica si Firestore está disponible
+     * @returns {boolean} True si Firestore está disponible
+     */
+    isFirestoreAvailable() {
+        return this.#initialized && this.#firestore !== null;
     }
 
     /**
