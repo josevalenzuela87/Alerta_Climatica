@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Alerta - AlertaClimática</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="spinner-overlay d-none">
+        <div class="spinner-border text-light" role="status" style="width: 3rem; height: 3rem;">
+            <span class="visually-hidden">Cargando...</span>
+        </div>
+    </div>
+
+    <!-- Top Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center" href="../dashboard.html">
+                <i class="fas fa-cloud-sun-rain fa-2x me-2"></i>
+                <span class="fw-bold">AlertaClimática</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="../dashboard.html">
+                            <i class="fas fa-home me-1"></i>Inicio
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="list.html">
+                            <i class="fas fa-bell me-1"></i>Alertas
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-chart-line me-1"></i>Estadísticas
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-cog me-1"></i>Configuración
+                        </a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle fa-2x me-2"></i>
+                            <div class="text-start d-none d-md-block">
+                                <strong id="navbarUserName" class="d-block">Usuario</strong>
+                                <small id="navbarUserEmail" class="text-white-50">email@ejemplo.com</small>
+                            </div>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Mi Perfil</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <button class="dropdown-item text-danger" id="navbarLogoutBtn">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                                </button>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="dashboard-container">
+        <div class="container-fluid px-4 py-4">
+            <!-- Page Header -->
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap">
+                        <div class="mb-2 mb-md-0">
+                            <nav aria-label="breadcrumb">
+                                <ol class="breadcrumb mb-2">
+                                    <li class="breadcrumb-item"><a href="../dashboard.html">Inicio</a></li>
+                                    <li class="breadcrumb-item"><a href="list.html">Alertas</a></li>
+                                    <li class="breadcrumb-item active">Editar</li>
+                                </ol>
+                            </nav>
+                            <h1 class="h3 mb-1 fw-bold">
+                                <i class="fas fa-edit me-2 text-primary"></i>
+                                Editar Alerta
+                            </h1>
+                            <p class="text-muted mb-0">Modifica la información de la alerta climática</p>
+                        </div>
+                        <div>
+                            <a href="list.html" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>
+                                Volver a Alertas
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alert Messages -->
+            <div id="alertMessage" class="alert d-none" role="alert"></div>
+
+            <!-- Edit Form -->
+            <div class="row justify-content-center">
+                <div class="col-12 col-lg-10 col-xl-8">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-primary text-white py-3">
+                            <h5 class="card-title mb-0">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Información de la Alerta
+                            </h5>
+                        </div>
+                        <div class="card-body p-4">
+                            <form id="editAlertForm" novalidate>
+                                <!-- Título -->
+                                <div class="mb-4">
+                                    <label for="titulo" class="form-label fw-semibold">
+                                        <i class="fas fa-heading me-2 text-primary"></i>
+                                        Título <span class="text-danger">*</span>
+                                    </label>
+                                    <input 
+                                        type="text" 
+                                        class="form-control form-control-lg" 
+                                        id="titulo" 
+                                        name="titulo"
+                                        placeholder="Ej: Alerta de Tormenta en la Región Norte"
+                                        required
+                                        maxlength="100"
+                                    >
+                                    <div class="invalid-feedback">
+                                        El título es requerido y debe tener entre 3 y 100 caracteres.
+                                    </div>
+                                    <div class="form-text">
+                                        <span id="tituloCount">0</span>/100 caracteres
+                                    </div>
+                                </div>
+
+                                <!-- Descripción -->
+                                <div class="mb-4">
+                                    <label for="descripcion" class="form-label fw-semibold">
+                                        <i class="fas fa-align-left me-2 text-primary"></i>
+                                        Descripción <span class="text-danger">*</span>
+                                    </label>
+                                    <textarea 
+                                        class="form-control" 
+                                        id="descripcion" 
+                                        name="descripcion"
+                                        rows="5"
+                                        placeholder="Describe detalladamente la alerta climática, incluyendo ubicación, condiciones esperadas y cualquier información relevante..."
+                                        required
+                                        minlength="10"
+                                    ></textarea>
+                                    <div class="invalid-feedback">
+                                        La descripción debe tener al menos 10 caracteres.
+                                    </div>
+                                    <div class="form-text">
+                                        <span id="descripcionCount">0</span> caracteres
+                                    </div>
+                                </div>
+
+                                <!-- Tipo y Severidad -->
+                                <div class="row mb-4">
+                                    <div class="col-md-6 mb-3 mb-md-0">
+                                        <label for="tipo" class="form-label fw-semibold">
+                                            <i class="fas fa-tag me-2 text-primary"></i>
+                                            Tipo de Alerta <span class="text-danger">*</span>
+                                        </label>
+                                        <select class="form-select form-select-lg" id="tipo" name="tipo" required>
+                                            <option value="">Selecciona un tipo</option>
+                                            <option value="tormenta">Tormenta</option>
+                                            <option value="huracan">Huracán</option>
+                                            <option value="lluvia">Lluvia Intensa</option>
+                                            <option value="viento">Vientos Fuertes</option>
+                                            <option value="sequia">Sequía</option>
+                                            <option value="helada">Helada</option>
+                                            <option value="nieve">Nieve</option>
+                                            <option value="granizo">Granizo</option>
+                                            <option value="calor_extremo">Calor Extremo</option>
+                                            <option value="otro">Otro</option>
+                                        </select>
+                                        <div class="invalid-feedback">
+                                            Debes seleccionar un tipo de alerta.
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="severidad" class="form-label fw-semibold">
+                                            <i class="fas fa-exclamation-triangle me-2 text-primary"></i>
+                                            Severidad <span class="text-danger">*</span>
+                                        </label>
+                                        <select class="form-select form-select-lg" id="severidad" name="severidad" required>
+                                            <option value="">Selecciona severidad</option>
+                                            <option value="leve">Leve</option>
+                                            <option value="moderada">Moderada</option>
+                                            <option value="grave">Grave</option>
+                                            <option value="critica">Crítica</option>
+                                        </select>
+                                        <div class="invalid-feedback">
+                                            Debes seleccionar un nivel de severidad.
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Estado -->
+                                <div class="mb-4">
+                                    <label for="status" class="form-label fw-semibold">
+                                        <i class="fas fa-info-circle me-2 text-primary"></i>
+                                        Estado <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-select form-select-lg" id="status" name="status" required>
+                                        <option value="activa">Activa</option>
+                                        <option value="cancelada">Cancelada</option>
+                                        <option value="finalizada">Finalizada</option>
+                                    </select>
+                                    <div class="invalid-feedback">
+                                        Debes seleccionar un estado.
+                                    </div>
+                                </div>
+
+                                <!-- Ubicación -->
+                                <div class="row mb-4">
+                                    <div class="col-md-6 mb-3 mb-md-0">
+                                        <label for="region" class="form-label fw-semibold">
+                                            <i class="fas fa-map-marked-alt me-2 text-primary"></i>
+                                            Región/Estado <span class="text-danger">*</span>
+                                        </label>
+                                        <input 
+                                            type="text" 
+                                            class="form-control form-control-lg" 
+                                            id="region" 
+                                            name="region"
+                                            placeholder="Ej: Sonora, Nuevo León..."
+                                            required
+                                            minlength="2"
+                                        >
+                                        <div class="invalid-feedback">
+                                            La región es requerida.
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="ciudad" class="form-label fw-semibold">
+                                            <i class="fas fa-city me-2 text-primary"></i>
+                                            Ciudad <span class="text-danger">*</span>
+                                        </label>
+                                        <input 
+                                            type="text" 
+                                            class="form-control form-control-lg" 
+                                            id="ciudad" 
+                                            name="ciudad"
+                                            placeholder="Ej: Hermosillo, Monterrey..."
+                                            required
+                                            minlength="2"
+                                        >
+                                        <div class="invalid-feedback">
+                                            La ciudad es requerida.
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Fechas -->
+                                <div class="row mb-4">
+                                    <div class="col-md-6 mb-3 mb-md-0">
+                                        <label for="fechaInicio" class="form-label fw-semibold">
+                                            <i class="fas fa-calendar-alt me-2 text-primary"></i>
+                                            Fecha de Inicio <span class="text-danger">*</span>
+                                        </label>
+                                        <input 
+                                            type="datetime-local" 
+                                            class="form-control form-control-lg" 
+                                            id="fechaInicio" 
+                                            name="fechaInicio"
+                                            required
+                                        >
+                                        <div class="invalid-feedback">
+                                            La fecha de inicio es requerida.
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="fechaFin" class="form-label fw-semibold">
+                                            <i class="fas fa-calendar-times me-2 text-primary"></i>
+                                            Fecha de Fin (Opcional)
+                                        </label>
+                                        <input 
+                                            type="datetime-local" 
+                                            class="form-control form-control-lg" 
+                                            id="fechaFin" 
+                                            name="fechaFin"
+                                        >
+                                        <div class="form-text">
+                                            Deja vacío si la alerta no tiene fecha de fin definida.
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Recomendaciones -->
+                                <div class="mb-4">
+                                    <label for="recomendaciones" class="form-label fw-semibold">
+                                        <i class="fas fa-lightbulb me-2 text-primary"></i>
+                                        Recomendaciones (Opcional)
+                                    </label>
+                                    <textarea 
+                                        class="form-control" 
+                                        id="recomendaciones" 
+                                        name="recomendaciones"
+                                        rows="4"
+                                        placeholder="Escribe recomendaciones para los usuarios, una por línea. Ejemplo:&#10;- Mantente en casa&#10;- Evita viajar&#10;- Prepara suministros de emergencia"
+                                    ></textarea>
+                                    <div class="form-text">
+                                        Separa cada recomendación en una línea nueva.
+                                    </div>
+                                </div>
+
+                                <!-- Submit Buttons -->
+                                <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                                    <a href="list.html" class="btn btn-outline-secondary">
+                                        <i class="fas fa-times me-2"></i>
+                                        Cancelar
+                                    </a>
+                                    <button type="submit" class="btn btn-primary btn-lg px-5">
+                                        <i class="fas fa-save me-2"></i>
+                                        Guardar Cambios
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    
+    <!-- App Scripts -->
+    <script src="../../config/firebase-config.js?v=1.2"></script>
+    <script src="../../config/env-loader.js?v=1.2"></script>
+    <script src="../../utils/Validator.js?v=1.2"></script>
+    <script src="../../models/Alert.js?v=1.2"></script>
+    <script src="../../services/FirebaseService.js?v=1.2"></script>
+    <script src="../../repositories/AuthRepository.js?v=1.2"></script>
+    <script src="../../repositories/AlertRepository.js?v=1.2"></script>
+    <script src="../../controllers/AuthController.js?v=1.2"></script>
+    <script src="../../controllers/AlertController.js?v=1.2"></script>
+    <script src="../../assets/js/alerts-edit.js?v=1.2"></script>
+</body>
+</html>
