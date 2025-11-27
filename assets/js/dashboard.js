@@ -8,7 +8,7 @@
  * y gestiona el cierre de sesión.
  * 
  * @author AlertaClimática Team
- * @version 1.0.0
+ * @version 1.4.0
  */
 
 // Variables globales
@@ -30,7 +30,7 @@ function checkDependencies() {
     
     if (missing.length > 0) {
         console.error('❌ Dependencias faltantes:', missing);
-        alert('Error: No se pudieron cargar todos los archivos necesarios.\n\nDependencias faltantes: ' + missing.join(', ') + '\n\nPor favor:\n1. Presiona Ctrl+Shift+R para recargar\n2. O limpia la caché del navegador');
+        console.error('💡 Solución: Presiona Ctrl+Shift+R para recargar o limpia la caché del navegador');
         return false;
     }
     
@@ -47,6 +47,7 @@ async function initializeApp() {
 
         // Verificar dependencias
         if (!checkDependencies()) {
+            console.error('❌ No se pueden cargar dependencias. Revisa la consola.');
             redirectToLogin();
             return;
         }
@@ -75,8 +76,10 @@ async function initializeApp() {
 
         // 6. Verificar autenticación
         if (!authController.isAuthenticated()) {
-            console.warn('⚠️ Usuario no autenticado');
-            redirectToLogin();
+            console.warn('⚠️ Usuario no autenticado, redirigiendo...');
+            setTimeout(() => {
+                redirectToLogin();
+            }, 500);
             return;
         }
 
@@ -89,8 +92,10 @@ async function initializeApp() {
         // 9. Observar cambios de autenticación
         authController.onAuthStateChanged((user) => {
             if (!user) {
-                console.log('⚠️ Sesión cerrada');
-                redirectToLogin();
+                console.log('⚠️ Sesión cerrada, redirigiendo...');
+                setTimeout(() => {
+                    redirectToLogin();
+                }, 1000);
             }
         });
 
@@ -106,7 +111,6 @@ async function initializeApp() {
 function loadUserData() {
     try {
         const user = authController.getCurrentUser();
-        const savedSession = authController.getSavedSession();
 
         if (user) {
             // Actualizar nombre de usuario
@@ -121,20 +125,11 @@ function loadUserData() {
                 userEmailElement.textContent = user.email;
             }
 
-            // Actualizar última conexión
-            if (savedSession && savedSession.lastLogin) {
-                const lastLoginElement = document.getElementById('lastLogin');
-                if (lastLoginElement) {
-                    const lastLogin = new Date(savedSession.lastLogin);
-                    lastLoginElement.textContent = formatDate(lastLogin);
-                }
-            }
-
-            console.log('✓ Datos de usuario cargados:', user.displayName);
+            console.log('✓ Datos de usuario cargados:', user.displayName || user.email);
 
             // Verificación de email
             if (!user.emailVerified) {
-                showEmailVerificationBanner();
+                console.warn('⚠️ Email no verificado');
             }
         }
     } catch (error) {
@@ -195,61 +190,19 @@ async function handleLogout() {
 }
 
 /**
- * Redirige a la página de login
+ * Redirige a la página de login (con protección contra bucles)
  */
+let redirecting = false;
 function redirectToLogin() {
+    if (redirecting) {
+        console.warn('⚠️ Ya se está redirigiendo, evitando bucle');
+        return;
+    }
+    redirecting = true;
     console.log('→ Redirigiendo a login...');
-    window.location.href = 'login.html';
-}
-
-/**
- * Muestra banner de verificación de email
- */
-function showEmailVerificationBanner() {
-    const welcomeAlert = document.querySelector('.alert-success');
-    if (welcomeAlert) {
-        const banner = document.createElement('div');
-        banner.className = 'alert alert-warning mb-4';
-        banner.innerHTML = `
-            <h4 class="alert-heading">
-                <i class="fas fa-envelope me-2"></i>
-                Verifica tu correo electrónico
-            </h4>
-            <p>Te hemos enviado un correo de verificación. Por favor, revisa tu bandeja de entrada.</p>
-        `;
-        welcomeAlert.parentNode.insertBefore(banner, welcomeAlert.nextSibling);
-    }
-}
-
-/**
- * Formatea una fecha a texto legible
- */
-function formatDate(date) {
-    const now = new Date();
-    const diff = now - date;
-    const minutes = Math.floor(diff / 60000);
-    const hours = Math.floor(diff / 3600000);
-    const days = Math.floor(diff / 86400000);
-
-    if (minutes < 1) {
-        return 'Hace un momento';
-    } else if (minutes < 60) {
-        return `Hace ${minutes} minuto${minutes > 1 ? 's' : ''}`;
-    } else if (hours < 24) {
-        return `Hace ${hours} hora${hours > 1 ? 's' : ''}`;
-    } else if (days < 7) {
-        return `Hace ${days} día${days > 1 ? 's' : ''}`;
-    } else {
-        return date.toLocaleDateString('es-ES', { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    }
+    // Usar replace en lugar de href para evitar historial
+    window.location.replace('login.html');
 }
 
 // Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', initializeApp);
-
