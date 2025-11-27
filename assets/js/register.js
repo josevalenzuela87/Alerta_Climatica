@@ -30,7 +30,8 @@ function checkDependencies() {
     
     if (missing.length > 0) {
         console.error('❌ Dependencias faltantes:', missing);
-        alert('Error: No se pudieron cargar todos los archivos necesarios.\n\nDependencias faltantes: ' + missing.join(', ') + '\n\nPor favor:\n1. Presiona Ctrl+Shift+R para recargar\n2. O limpia la caché del navegador');
+        console.error('💡 Solución: Presiona Ctrl+Shift+R para recargar o limpia la caché del navegador');
+        // NO usar alert() para evitar bucles
         return false;
     }
     
@@ -79,7 +80,10 @@ async function initializeApp() {
         // 6. Verificar si ya hay sesión activa
         if (authController.isAuthenticated()) {
             console.log('⚠️ Usuario ya autenticado, redirigiendo...');
-            window.location.href = 'dashboard.html';
+            // Usar setTimeout y replace para evitar bucles
+            setTimeout(() => {
+                window.location.replace('../views/dashboard.html');
+            }, 500);
             return;
         }
 
