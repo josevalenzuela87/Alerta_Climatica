@@ -271,3 +271,8 @@ if (typeof module !== 'undefined' && module.exports) {
     module.exports = AlertController;
 }
 
+// Exponer al objeto window para uso en navegador
+if (typeof window !== 'undefined') {
+    window.AlertController = AlertController;
+}
+

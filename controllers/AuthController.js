@@ -363,3 +363,8 @@ if (typeof module !== 'undefined' && module.exports) {
     module.exports = AuthController;
 }
 
+// Exponer al objeto window para uso en navegador
+if (typeof window !== 'undefined') {
+    window.AuthController = AuthController;
+}
+
