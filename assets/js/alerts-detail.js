@@ -12,6 +12,8 @@
 // Variables globales
 let alertController = null;
 let authController = null;
+let userController = null;
+let currentUser = null;
 let currentAlert = null;
 let alertId = null;
 
@@ -62,16 +64,34 @@ async function initializeApp() {
             return;
         }
 
-        // 5. Crear controlador de alertas
+        // 5. Obtener usuario completo para verificar rol
+        const userRepository = new UserRepository(firebaseService);
+        userController = new UserController(userRepository, firebaseService);
+        currentUser = await userController.getCurrentUser();
+
+        if (!currentUser) {
+            window.location.replace('../login.html');
+            return;
+        }
+
+        // 6. Configurar navbar según rol
+        if (typeof NavbarUtils !== 'undefined') {
+            NavbarUtils.setupNavbarPermissions(currentUser);
+        }
+
+        // 7. Configurar botón "Volver" según rol
+        setupBackButton();
+
+        // 8. Crear controlador de alertas
         const alertRepository = new AlertRepository(firebaseService);
         alertController = new AlertController(alertRepository);
 
         console.log('✓ Aplicación inicializada correctamente');
 
-        // 6. Cargar alerta
+        // 9. Cargar alerta
         await loadAlert();
 
-        // 7. Configurar event listeners
+        // 10. Configurar event listeners
         setupEventListeners();
 
         hideLoading();
@@ -92,7 +112,9 @@ function checkDependencies() {
         'Alert': typeof Alert !== 'undefined',
         'FirebaseService': typeof FirebaseService !== 'undefined',
         'AlertRepository': typeof AlertRepository !== 'undefined',
-        'AlertController': typeof AlertController !== 'undefined'
+        'AlertController': typeof AlertController !== 'undefined',
+        'UserRepository': typeof UserRepository !== 'undefined',
+        'UserController': typeof UserController !== 'undefined'
     };
 
     const missing = Object.keys(required).filter(dep => !required[dep]);
@@ -105,6 +127,24 @@ function checkDependencies() {
     
     console.log('✓ Todas las dependencias cargadas correctamente');
     return true;
+}
+
+/**
+ * Configura el botón "Volver" según el rol del usuario
+ */
+function setupBackButton() {
+    const backButton = document.getElementById('backButton');
+    if (!backButton || !currentUser) return;
+
+    if (typeof NavbarUtils !== 'undefined') {
+        // Usar NavbarUtils para obtener la URL correcta
+        const backUrl = NavbarUtils.getBackUrl(currentUser, 'list.html');
+        backButton.href = backUrl;
+    } else {
+        // Fallback: usar RoleManager directamente
+        const isAdmin = typeof RoleManager !== 'undefined' && RoleManager.isAdmin(currentUser);
+        backButton.href = isAdmin ? 'list.html' : '../dashboard.html';
+    }
 }
 
 /**
@@ -150,11 +190,15 @@ function renderAlertDetail() {
     
     if (!currentAlert) return;
 
-    const isOwner = authController.getCurrentUser()?.uid === currentAlert.createdBy;
+    // Verificar si es el propietario o admin
+    const currentAuthUser = authController.getCurrentUser();
+    const isOwner = currentAuthUser?.uid === currentAlert.createdBy;
+    const isAdmin = currentUser && currentUser.isAdmin();
     const editBtn = document.getElementById('editBtn');
     const deleteBtn = document.getElementById('deleteBtn');
 
-    if (isOwner) {
+    // Solo admins pueden editar/eliminar alertas
+    if (isAdmin) {
         editBtn?.classList.remove('d-none');
         deleteBtn?.classList.remove('d-none');
     }
@@ -333,16 +377,26 @@ async function handleDelete() {
  */
 function loadUserDataInNavbar() {
     try {
-        if (!authController) return;
-        
-        const user = authController.getCurrentUser();
-        if (user) {
-            const userNameElement = document.getElementById('navbarUserName');
-            const userEmailElement = document.getElementById('navbarUserEmail');
-            
-            if (userNameElement) userNameElement.textContent = user.displayName || 'Usuario';
-            if (userEmailElement) userEmailElement.textContent = user.email;
+        if (!currentUser) {
+            // Fallback: usar authController si currentUser no está disponible
+            if (authController) {
+                const user = authController.getCurrentUser();
+                if (user) {
+                    const userNameElement = document.getElementById('navbarUserName');
+                    const userEmailElement = document.getElementById('navbarUserEmail');
+                    
+                    if (userNameElement) userNameElement.textContent = user.displayName || 'Usuario';
+                    if (userEmailElement) userEmailElement.textContent = user.email;
+                }
+            }
+            return;
         }
+        
+        const userNameElement = document.getElementById('navbarUserName');
+        const userEmailElement = document.getElementById('navbarUserEmail');
+        
+        if (userNameElement) userNameElement.textContent = currentUser.displayName || 'Usuario';
+        if (userEmailElement) userEmailElement.textContent = currentUser.email || '';
     } catch (error) {
         console.error('❌ Error al cargar datos en navbar:', error);
     }
