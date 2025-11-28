@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Perfil - AlertaClimática</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../../assets/css/style.css">
+</head>
+<body>
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="spinner-overlay d-none">
+        <div class="spinner-border text-light" role="status" style="width: 3rem; height: 3rem;">
+            <span class="visually-hidden">Cargando...</span>
+        </div>
+    </div>
+
+    <!-- Top Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center" href="../dashboard.html">
+                <i class="fas fa-cloud-sun-rain fa-2x me-2"></i>
+                <span class="fw-bold">AlertaClimática</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="../dashboard.html">
+                            <i class="fas fa-home me-1"></i>Inicio
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../alerts/list.html">
+                            <i class="fas fa-bell me-1"></i>Alertas
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../locations/list.html">
+                            <i class="fas fa-map-marker-alt me-1"></i>Ubicaciones
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="list.html">
+                            <i class="fas fa-users me-1"></i>Usuarios
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../statistics/index.html">
+                            <i class="fas fa-chart-line me-1"></i>Estadísticas
+                        </a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle fa-2x me-2"></i>
+                            <div class="text-start d-none d-md-block">
+                                <strong id="navbarUserName" class="d-block">Usuario</strong>
+                                <small id="navbarUserEmail" class="text-white-50">email@ejemplo.com</small>
+                            </div>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <a class="dropdown-item active" href="profile.html">
+                                    <i class="fas fa-user me-2"></i>Mi Perfil
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <button class="dropdown-item text-danger" id="navbarLogoutBtn">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                                </button>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="dashboard-container">
+        <div class="container py-4">
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <!-- Page Header -->
+                    <div class="mb-4">
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                <li class="breadcrumb-item"><a href="../dashboard.html">Inicio</a></li>
+                                <li class="breadcrumb-item active">Mi Perfil</li>
+                            </ol>
+                        </nav>
+                        <h1 class="h3 mb-1 fw-bold">
+                            <i class="fas fa-user me-2 text-primary"></i>
+                            Mi Perfil
+                        </h1>
+                        <p class="text-muted">Administra tu información personal y preferencias</p>
+                    </div>
+
+                    <!-- Alert Messages -->
+                    <div id="alertMessage" class="alert d-none" role="alert"></div>
+
+                    <!-- Profile Tabs -->
+                    <ul class="nav nav-tabs mb-4" id="profileTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="info-tab" data-bs-toggle="tab" data-bs-target="#info" type="button">
+                                <i class="fas fa-info-circle me-2"></i>Información Personal
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="preferences-tab" data-bs-toggle="tab" data-bs-target="#preferences" type="button">
+                                <i class="fas fa-cog me-2"></i>Preferencias
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="password-tab" data-bs-toggle="tab" data-bs-target="#password" type="button">
+                                <i class="fas fa-lock me-2"></i>Contraseña
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content" id="profileTabsContent">
+                        <!-- Información Personal Tab -->
+                        <div class="tab-pane fade show active" id="info" role="tabpanel">
+                            <div class="card shadow-sm border-0">
+                                <div class="card-body p-4">
+                                    <form id="profileForm">
+                                        <div class="row mb-4">
+                                            <div class="col-md-3 text-center mb-3 mb-md-0">
+                                                <div class="mb-3">
+                                                    <img id="profilePhoto" src="https://via.placeholder.com/150" alt="Foto de perfil" 
+                                                         class="img-thumbnail rounded-circle" style="width: 150px; height: 150px; object-fit: cover;">
+                                                </div>
+                                                <input type="file" id="photoFileInput" accept="image/*" class="d-none">
+                                                <button type="button" class="btn btn-sm btn-outline-primary" id="changePhotoBtn">
+                                                    <i class="fas fa-camera me-2"></i>Cambiar Foto
+                                                </button>
+                                                <input type="hidden" id="photoURL" name="photoURL">
+                                            </div>
+                                            <div class="col-md-9">
+                                                <div class="mb-3">
+                                                    <label class="form-label fw-semibold">
+                                                        <i class="fas fa-envelope me-2 text-primary"></i>
+                                                        Email
+                                                    </label>
+                                                    <input type="email" class="form-control" id="email" name="email" readonly>
+                                                    <small class="text-muted">El email no se puede modificar</small>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label fw-semibold">
+                                                        <i class="fas fa-user me-2 text-primary"></i>
+                                                        Nombre Completo
+                                                    </label>
+                                                    <input type="text" class="form-control" id="displayName" name="displayName" required>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label fw-semibold">
+                                                            <i class="fas fa-shield-alt me-2 text-primary"></i>
+                                                            Rol
+                                                        </label>
+                                                        <input type="text" class="form-control" id="role" readonly>
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label fw-semibold">
+                                                            <i class="fas fa-check-circle me-2 text-primary"></i>
+                                                            Estado de Email
+                                                        </label>
+                                                        <div id="emailVerifiedBadge" class="mt-2">
+                                                            <span class="badge bg-secondary">No verificado</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label fw-semibold">
+                                                            <i class="fas fa-calendar me-2 text-primary"></i>
+                                                            Fecha de Registro
+                                                        </label>
+                                                        <input type="text" class="form-control" id="fechaCreacion" readonly>
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label fw-semibold">
+                                                            <i class="fas fa-clock me-2 text-primary"></i>
+                                                            Último Acceso
+                                                        </label>
+                                                        <input type="text" class="form-control" id="ultimoAcceso" readonly>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex justify-content-end" id="profileSaveButtonContainer" style="display: none !important;">
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="fas fa-save me-2"></i>
+                                                Guardar Cambios
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Preferencias Tab -->
+                        <div class="tab-pane fade" id="preferences" role="tabpanel">
+                            <div class="card shadow-sm border-0">
+                                <div class="card-body p-4">
+                                    <form id="preferencesForm">
+                                        <h5 class="mb-4">
+                                            <i class="fas fa-bell me-2 text-primary"></i>
+                                            Preferencias de Notificaciones
+                                        </h5>
+                                        
+                                        <div class="mb-4">
+                                            <div class="form-check form-switch mb-3">
+                                                <input class="form-check-input" type="checkbox" id="notificacionesActivas" name="activas">
+                                                <label class="form-check-label fw-semibold" for="notificacionesActivas">
+                                                    Notificaciones Activas
+                                                </label>
+                                                <small class="d-block text-muted">Recibir alertas climáticas</small>
+                                            </div>
+                                            
+                                            <div class="form-check form-switch mb-3">
+                                                <input class="form-check-input" type="checkbox" id="notificacionesEmail" name="email">
+                                                <label class="form-check-label fw-semibold" for="notificacionesEmail">
+                                                    Notificaciones por Email
+                                                </label>
+                                                <small class="d-block text-muted">Recibir alertas por correo electrónico</small>
+                                            </div>
+                                            
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">
+                                                    <i class="fas fa-exclamation-triangle me-2 text-primary"></i>
+                                                    Severidad Mínima
+                                                </label>
+                                                <select class="form-select" id="severidadMinima" name="severidadMinima">
+                                                    <option value="leve">Leve</option>
+                                                    <option value="moderada">Moderada</option>
+                                                    <option value="grave">Grave</option>
+                                                    <option value="critica">Crítica</option>
+                                                </select>
+                                                <small class="text-muted">Solo recibir alertas de esta severidad o superior</small>
+                                            </div>
+                                        </div>
+
+                                        <h5 class="mb-4 mt-5">
+                                            <i class="fas fa-map-marker-alt me-2 text-primary"></i>
+                                            Regiones de Interés
+                                        </h5>
+                                        <p class="text-muted mb-4">Selecciona las regiones de las que deseas recibir alertas</p>
+                                        
+                                        <div id="regionesInteresContainer" class="mb-4">
+                                            <div class="text-center py-4">
+                                                <div class="spinner-border text-primary" role="status">
+                                                    <span class="visually-hidden">Cargando...</span>
+                                                </div>
+                                                <p class="mt-3 text-muted">Cargando ubicaciones...</p>
+                                            </div>
+                                        </div>
+
+                                        <div class="d-flex justify-content-end">
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="fas fa-save me-2"></i>
+                                                Guardar Preferencias
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Contraseña Tab -->
+                        <div class="tab-pane fade" id="password" role="tabpanel">
+                            <div class="card shadow-sm border-0">
+                                <div class="card-body p-4">
+                                    <form id="passwordForm">
+                                        <h5 class="mb-4">
+                                            <i class="fas fa-lock me-2 text-primary"></i>
+                                            Cambiar Contraseña
+                                        </h5>
+                                        
+                                        <div class="mb-3">
+                                            <label class="form-label fw-semibold">
+                                                <i class="fas fa-key me-2 text-primary"></i>
+                                                Nueva Contraseña
+                                            </label>
+                                            <input type="password" class="form-control" id="newPassword" name="newPassword" required 
+                                                   minlength="6" placeholder="Mínimo 6 caracteres">
+                                            <small class="text-muted">La contraseña debe tener al menos 6 caracteres</small>
+                                        </div>
+                                        
+                                        <div class="mb-4">
+                                            <label class="form-label fw-semibold">
+                                                <i class="fas fa-key me-2 text-primary"></i>
+                                                Confirmar Nueva Contraseña
+                                            </label>
+                                            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required 
+                                                   placeholder="Confirma tu nueva contraseña">
+                                        </div>
+
+                                        <div class="alert alert-info">
+                                            <i class="fas fa-info-circle me-2"></i>
+                                            Por seguridad, es posible que necesites iniciar sesión nuevamente después de cambiar tu contraseña.
+                                        </div>
+
+                                        <div class="d-flex justify-content-end">
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="fas fa-save me-2"></i>
+                                                Cambiar Contraseña
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+    
+    <!-- App Scripts -->
+    <script src="../../config/firebase-config.js?v=2.6"></script>
+    <script src="../../config/env-loader.js?v=2.6"></script>
+    <script src="../../utils/Validator.js?v=2.6"></script>
+    <script src="../../utils/RoleManager.js?v=2.6"></script>
+    <script src="../../utils/NavbarUtils.js?v=2.8"></script>
+    <script src="../../models/User.js?v=2.6"></script>
+    <script src="../../models/Location.js?v=2.6"></script>
+    <script src="../../services/FirebaseService.js?v=2.6"></script>
+    <script src="../../repositories/AuthRepository.js?v=2.6"></script>
+    <script src="../../repositories/UserRepository.js?v=2.6"></script>
+    <script src="../../repositories/LocationRepository.js?v=2.6"></script>
+    <script src="../../controllers/AuthController.js?v=2.6"></script>
+    <script src="../../controllers/UserController.js?v=2.6"></script>
+    <script src="../../controllers/LocationController.js?v=2.6"></script>
+    <script src="../../assets/js/users-profile.js?v=2.8"></script>
+</body>
+</html>
+

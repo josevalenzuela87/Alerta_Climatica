@@ -17,43 +17,56 @@
 
 class EnvLoader {
     /**
-     * Carga las variables de entorno desde el archivo .env
-     * NOTA: Este es un enfoque educativo. En producción real,
-     * usa variables de entorno del servidor o Firebase Hosting config.
+     * Carga las variables de entorno desde firebase-config.js o .env
+     * NOTA: Los archivos .env no se pueden cargar desde el navegador por seguridad.
+     * Por eso usamos firebase-config.js como alternativa.
      */
     static async loadEnv() {
         try {
-            // Intenta cargar el archivo .env
-            const response = await fetch('../.env');
-            
-            if (!response.ok) {
-                console.warn('⚠️ No se encontró archivo .env. Usando configuración de ejemplo.');
-                return this.getExampleConfig();
+            // Primero intentar cargar desde firebase-config.js (recomendado)
+            if (typeof FIREBASE_CONFIG !== 'undefined' && FIREBASE_CONFIG) {
+                console.log('✓ Configuración cargada desde firebase-config.js');
+                return FIREBASE_CONFIG;
             }
-
-            const text = await response.text();
-            const config = {};
-
-            // Parse del archivo .env
-            text.split('\n').forEach(line => {
-                line = line.trim();
-                
-                // Ignora comentarios y líneas vacías
-                if (line.startsWith('#') || !line) return;
-                
-                const [key, ...valueParts] = line.split('=');
-                const value = valueParts.join('=').trim();
-                
-                if (key && value) {
-                    config[key.trim()] = value;
-                }
-            });
-
-            return config;
         } catch (error) {
-            console.error('❌ Error cargando .env:', error);
-            return this.getExampleConfig();
+            console.debug('firebase-config.js no disponible, intentando .env...');
         }
+
+        try {
+            // Intentar cargar desde .env (puede fallar porque los servidores no sirven .env por seguridad)
+            const envUrl = window.location.origin + '/.env';
+            const response = await fetch(envUrl);
+            
+            if (response.ok) {
+                const text = await response.text();
+                const config = {};
+
+                // Parse del archivo .env
+                text.split('\n').forEach(line => {
+                    line = line.trim();
+                    
+                    // Ignora comentarios y líneas vacías
+                    if (line.startsWith('#') || !line) return;
+                    
+                    const [key, ...valueParts] = line.split('=');
+                    const value = valueParts.join('=').trim();
+                    
+                    if (key && value) {
+                        config[key.trim()] = value;
+                    }
+                });
+
+                console.log('✓ Configuración cargada desde .env');
+                return config;
+            }
+        } catch (error) {
+            console.debug('No se pudo cargar .env (normal, por seguridad)');
+        }
+
+        // Si no se pudo cargar nada, usar configuración de ejemplo
+        console.warn('⚠️ No se encontró configuración. Usando valores de ejemplo.');
+        console.warn('💡 Crea el archivo config/firebase-config.js con tus credenciales reales');
+        return this.getExampleConfig();
     }
 
     /**
@@ -104,3 +117,7 @@ if (typeof module !== 'undefined' && module.exports) {
     module.exports = EnvLoader;
 }
 
+// Exponer al objeto window para uso en navegador
+if (typeof window !== 'undefined') {
+    window.EnvLoader = EnvLoader;
+}
