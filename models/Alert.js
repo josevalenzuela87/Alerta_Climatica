@@ -61,8 +61,9 @@ class Alert {
         this.tipo = data.tipo || Alert.TYPES.OTRO;
         this.severidad = data.severidad || Alert.SEVERITY.LEVE;
         this.status = data.status || Alert.STATUS.ACTIVA;
-        this.region = data.region || '';
-        this.ciudad = data.ciudad || '';
+        this.ubicaciones = data.ubicaciones || []; // Array de IDs de ubicaciones
+        this.region = data.region || ''; // Mantener para compatibilidad
+        this.ciudad = data.ciudad || ''; // Mantener para compatibilidad
         this.fechaInicio = data.fechaInicio || new Date().toISOString();
         this.fechaFin = data.fechaFin || null;
         this.recomendaciones = data.recomendaciones || [];
@@ -102,14 +103,16 @@ class Alert {
             errors.severidad = 'Nivel de severidad inválido';
         }
 
-        // Validar región
-        if (!this.region || this.region.trim().length < 2) {
-            errors.region = 'La región es requerida';
-        }
-
-        // Validar ciudad
-        if (!this.ciudad || this.ciudad.trim().length < 2) {
-            errors.ciudad = 'La ciudad es requerida';
+        // Validar ubicaciones (prioridad: usar ubicaciones si están disponibles)
+        if (this.ubicaciones && Array.isArray(this.ubicaciones) && this.ubicaciones.length > 0) {
+            // Validar que todos los IDs de ubicaciones sean strings válidos
+            const invalidUbicaciones = this.ubicaciones.filter(id => !id || typeof id !== 'string');
+            if (invalidUbicaciones.length > 0) {
+                errors.ubicaciones = 'Las ubicaciones deben ser IDs válidos';
+            }
+        } else if (!this.region || this.region.trim().length < 2) {
+            // Fallback: validar región/ciudad si no hay ubicaciones (compatibilidad)
+            errors.region = 'Debe especificar al menos una ubicación o región';
         }
 
         // Validar fechas
@@ -134,8 +137,11 @@ class Alert {
             tipo: this.tipo,
             severidad: this.severidad,
             status: this.status,
-            region: this.region,
-            ciudad: this.ciudad,
+            ubicaciones: Array.isArray(this.ubicaciones) && this.ubicaciones.length > 0 
+                ? this.ubicaciones 
+                : [],
+            region: this.region || '', // Mantener para compatibilidad
+            ciudad: this.ciudad || '', // Mantener para compatibilidad
             fechaInicio: this.fechaInicio,
             fechaFin: this.fechaFin || null,
             recomendaciones: Array.isArray(this.recomendaciones) ? this.recomendaciones : [],
