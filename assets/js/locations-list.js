@@ -73,6 +73,18 @@ async function initializeApp() {
             return;
         }
 
+        // 3.5. Verificar que el usuario sea administrador
+        const userRepository = new UserRepository(firebaseService);
+        const userController = new UserController(userRepository, firebaseService);
+        const currentUser = await userController.getCurrentUser();
+
+        if (!currentUser || !currentUser.isAdmin()) {
+            console.warn('⚠️ Acceso denegado: Solo administradores pueden acceder a esta página');
+            alert('No tienes permisos para acceder a esta página. Solo los administradores pueden gestionar ubicaciones.');
+            window.location.href = 'dashboard.html';
+            return;
+        }
+
         // 4. Crear controlador de ubicaciones
         const locationRepository = new LocationRepository(firebaseService);
         locationController = new LocationController(locationRepository);
