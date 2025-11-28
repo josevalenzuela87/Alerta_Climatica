@@ -105,6 +105,128 @@ body {
    ======================================== */
 
 .dashboard-container {
+    min-height: calc(100vh - 70px);
+    padding-bottom: 2rem;
+}
+
+/* User Alert Cards - Responsive Design */
+.user-alert-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.user-alert-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.user-alert-card .card-title {
+    font-size: 1.1rem;
+    line-height: 1.4;
+}
+
+.user-alert-card .badge {
+    font-size: 0.75rem;
+    padding: 0.35em 0.65em;
+    white-space: nowrap;
+}
+
+.user-alert-card .card-text {
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+/* Mobile Responsive Adjustments */
+/* Utility classes para responsive */
+.small-md-normal {
+    font-size: 0.875rem;
+}
+
+@media (min-width: 768px) {
+    .small-md-normal {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-container {
+        padding: 1rem 0.5rem;
+    }
+
+    .user-alert-card .card-body {
+        padding: 1rem !important;
+    }
+
+    .user-alert-card .card-title {
+        font-size: 1rem;
+    }
+
+    .user-alert-card .btn {
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
+    }
+
+    /* Asegurar que el badge no cause problemas en móvil */
+    .user-alert-card .badge {
+        font-size: 0.7rem;
+        padding: 0.3em 0.5em;
+    }
+
+    /* Mejorar espaciado en móvil */
+    #userDashboard .container-fluid {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+
+    #userDashboard .card {
+        border-radius: 0.5rem;
+    }
+
+    #userDashboard .card-header {
+        padding: 0.75rem 1rem;
+        font-size: 0.95rem;
+    }
+
+    #userDashboard .card-body {
+        padding: 1rem;
+    }
+
+    #userDashboard h1 {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .user-alert-card .card-title {
+        font-size: 0.95rem;
+    }
+
+    .user-alert-card .card-text {
+        font-size: 0.85rem;
+    }
+
+    .user-alert-card small {
+        font-size: 0.75rem;
+    }
+
+    /* Ajustar tamaño de texto responsive en dashboard */
+    #userDashboard h1 {
+        font-size: 1.25rem;
+    }
+
+    #userDashboard .small-md-normal {
+        font-size: 0.875rem;
+    }
+
+    #userDashboard .card-header {
+        font-size: 0.9rem;
+    }
+
+    #userDashboard .badge {
+        font-size: 0.75rem;
+    }
+}
+
+.dashboard-container {
     min-height: calc(100vh - 76px);
     background: linear-gradient(to bottom, #f8f9fa 0%, #e9ecef 100%);
     padding-top: 0;
@@ -359,5 +481,94 @@ body {
 .divider span {
     padding: 0 10px;
     color: var(--secondary-color);
+}
+
+/* ========================================
+   Tema Oscuro
+   ======================================== */
+
+[data-bs-theme="dark"], .theme-dark {
+    --bs-body-bg: #1a1a1a;
+    --bs-body-color: #e0e0e0;
+    --bs-border-color: #3a3a3a;
+    --bs-secondary-bg: #2a2a2a;
+}
+
+[data-bs-theme="dark"] .card,
+.theme-dark .card {
+    background-color: #2a2a2a;
+    border-color: #3a3a3a;
+    color: #e0e0e0;
+}
+
+[data-bs-theme="dark"] .card-header,
+.theme-dark .card-header {
+    background-color: #333333;
+    border-color: #3a3a3a;
+    color: #e0e0e0;
+}
+
+[data-bs-theme="dark"] .form-control,
+.theme-dark .form-control,
+[data-bs-theme="dark"] .form-select,
+.theme-dark .form-select {
+    background-color: #2a2a2a;
+    border-color: #3a3a3a;
+    color: #e0e0e0;
+}
+
+[data-bs-theme="dark"] .form-control:focus,
+.theme-dark .form-control:focus,
+[data-bs-theme="dark"] .form-select:focus,
+.theme-dark .form-select:focus {
+    background-color: #2a2a2a;
+    border-color: #0d6efd;
+    color: #e0e0e0;
+}
+
+[data-bs-theme="dark"] .form-check-card,
+.theme-dark .form-check-card {
+    background-color: #2a2a2a;
+    border-color: #3a3a3a;
+}
+
+[data-bs-theme="dark"] .form-check-card:hover,
+.theme-dark .form-check-card:hover {
+    background-color: #333333;
+    border-color: #0d6efd;
+}
+
+[data-bs-theme="dark"] .text-muted,
+.theme-dark .text-muted {
+    color: #999999 !important;
+}
+
+[data-bs-theme="dark"] .bg-light,
+.theme-dark .bg-light {
+    background-color: #2a2a2a !important;
+}
+
+[data-bs-theme="dark"] .border,
+.theme-dark .border {
+    border-color: #3a3a3a !important;
+}
+
+/* Estilos para checkboxes y radios en tema oscuro */
+[data-bs-theme="dark"] .form-check-input,
+.theme-dark .form-check-input {
+    background-color: #2a2a2a;
+    border-color: #3a3a3a;
+}
+
+[data-bs-theme="dark"] .form-check-input:checked,
+.theme-dark .form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+/* Navbar en tema oscuro se mantiene con el color primario */
+[data-bs-theme="dark"] .navbar,
+.theme-dark .navbar {
+    background-color: #0d6efd !important;
 }
 

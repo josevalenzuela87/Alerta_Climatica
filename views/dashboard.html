@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="../assets/css/style.css?v=2.6">
 </head>
 <body>
     <!-- Top Navigation Bar -->
@@ -51,15 +51,15 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="fas fa-chart-line me-1"></i>
-                            Estadísticas
+                        <a class="nav-link" href="users/list.html">
+                            <i class="fas fa-users me-1"></i>
+                            Usuarios
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">
-                            <i class="fas fa-cog me-1"></i>
-                            Configuración
+                        <a class="nav-link" href="statistics/index.html">
+                            <i class="fas fa-chart-line me-1"></i>
+                            Estadísticas
                         </a>
                     </li>
                 </ul>
@@ -76,7 +76,7 @@
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                             <li>
-                                <a class="dropdown-item" href="#">
+                                <a class="dropdown-item" href="users/profile.html">
                                     <i class="fas fa-user me-2"></i>
                                     Mi Perfil
                                 </a>
@@ -95,26 +95,216 @@
         </div>
     </nav>
 
-    <!-- Main Content - Minimal -->
+    <!-- Main Content -->
     <div class="dashboard-container">
-        <div class="container-fluid px-4 py-5">
-            <div class="row justify-content-center">
-                <div class="col-lg-8">
-                    <div class="text-center py-5">
-                        <i class="fas fa-cloud-sun-rain fa-5x text-primary mb-4"></i>
-                        <h1 class="display-5 fw-bold mb-3">Bienvenido a AlertaClimática</h1>
-                        <p class="lead text-muted mb-4">
-                            Sistema de gestión de alertas climáticas
-                        </p>
-                        <div class="d-flex gap-3 justify-content-center">
-                            <a href="alerts/list.html" class="btn btn-primary btn-lg">
-                                <i class="fas fa-bell me-2"></i>
-                                Ver Alertas
-                            </a>
-                            <a href="alerts/create.html" class="btn btn-outline-primary btn-lg">
-                                <i class="fas fa-plus me-2"></i>
-                                Crear Alerta
-                            </a>
+        <!-- Dashboard de Administrador -->
+        <div id="adminDashboard" class="d-none">
+            <div class="container-fluid px-4 py-4">
+                <!-- Page Header -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h1 class="h3 mb-1 fw-bold">
+                            <i class="fas fa-chart-line me-2 text-primary"></i>
+                            Panel de Administración
+                        </h1>
+                        <p class="text-muted mb-0">Gestiona alertas, ubicaciones y usuarios del sistema</p>
+                    </div>
+                </div>
+
+                <!-- Statistics Cards -->
+                <div class="row g-4 mb-4">
+                    <div class="col-md-3">
+                        <div class="card text-white bg-primary shadow-sm border-0">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title text-white-50 mb-2">Total Alertas</h6>
+                                        <h2 class="mb-0 fw-bold" id="adminStatAlerts">0</h2>
+                                    </div>
+                                    <i class="fas fa-bell fa-2x opacity-50"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-white bg-success shadow-sm border-0">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title text-white-50 mb-2">Total Ubicaciones</h6>
+                                        <h2 class="mb-0 fw-bold" id="adminStatLocations">0</h2>
+                                    </div>
+                                    <i class="fas fa-map-marker-alt fa-2x opacity-50"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-white bg-info shadow-sm border-0">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title text-white-50 mb-2">Total Usuarios</h6>
+                                        <h2 class="mb-0 fw-bold" id="adminStatUsers">0</h2>
+                                    </div>
+                                    <i class="fas fa-users fa-2x opacity-50"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-white bg-warning shadow-sm border-0">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="card-title text-white-50 mb-2">Alertas Activas</h6>
+                                        <h2 class="mb-0 fw-bold" id="adminStatActiveAlerts">0</h2>
+                                    </div>
+                                    <i class="fas fa-exclamation-triangle fa-2x opacity-50"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="row g-4 mb-4">
+                    <div class="col-12">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-header bg-white border-0">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-bolt me-2 text-primary"></i>
+                                    Acciones Rápidas
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-3">
+                                        <a href="alerts/create.html" class="btn btn-primary w-100">
+                                            <i class="fas fa-plus me-2"></i>
+                                            Crear Alerta
+                                        </a>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <a href="locations/create.html" class="btn btn-success w-100">
+                                            <i class="fas fa-map-marker-alt me-2"></i>
+                                            Agregar Ubicación
+                                        </a>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <a href="users/list.html" class="btn btn-info w-100">
+                                            <i class="fas fa-users me-2"></i>
+                                            Gestionar Usuarios
+                                        </a>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <a href="alerts/list.html" class="btn btn-outline-primary w-100">
+                                            <i class="fas fa-list me-2"></i>
+                                            Ver Todas las Alertas
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Alerts -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-bell me-2 text-primary"></i>
+                                    Alertas Recientes
+                                </h5>
+                                <a href="alerts/list.html" class="btn btn-sm btn-outline-primary">Ver todas</a>
+                            </div>
+                            <div class="card-body">
+                                <div id="adminRecentAlerts">
+                                    <div class="text-center py-4">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Cargando...</span>
+                                        </div>
+                                        <p class="mt-3 text-muted">Cargando alertas...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-users me-2 text-primary"></i>
+                                    Usuarios Recientes
+                                </h5>
+                                <a href="users/list.html" class="btn btn-sm btn-outline-primary">Ver todos</a>
+                            </div>
+                            <div class="card-body">
+                                <div id="adminRecentUsers">
+                                    <div class="text-center py-4">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Cargando...</span>
+                                        </div>
+                                        <p class="mt-3 text-muted">Cargando usuarios...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard de Usuario Normal -->
+        <div id="userDashboard" class="d-none">
+            <div class="container-fluid px-3 px-md-4 py-3 py-md-4">
+                <!-- Page Header -->
+                <div class="row mb-3 mb-md-4">
+                    <div class="col-12">
+                        <h1 class="h4 h-md-3 mb-2 mb-md-1 fw-bold">
+                            <i class="fas fa-bell me-2 text-primary"></i>
+                            Mis Alertas Climáticas
+                        </h1>
+                        <p class="text-muted mb-0 small small-md-normal">Alertas de las regiones que sigues</p>
+                    </div>
+                </div>
+
+                <!-- Alert Info -->
+                <div class="row mb-3 mb-md-4">
+                    <div class="col-12">
+                        <div class="alert alert-info d-flex align-items-start align-items-md-center" id="userAlertInfo">
+                            <i class="fas fa-info-circle me-2 me-md-3 mt-1 flex-shrink-0"></i>
+                            <div class="small">
+                                <strong>Selecciona tus regiones de interés</strong>
+                                <p class="mb-0 mt-1">Ve a <a href="users/profile.html#preferences" class="alert-link">tu perfil > Preferencias</a> para elegir las regiones de las que deseas recibir alertas.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Alerts List -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-header bg-white border-0 d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-list me-2 text-primary"></i>
+                                    Alertas de Mis Regiones
+                                </h5>
+                                <span class="badge bg-primary" id="userAlertsCount">0 alertas</span>
+                            </div>
+                            <div class="card-body p-2 p-md-3">
+                                <div id="userAlertsList">
+                                    <div class="text-center py-5">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Cargando...</span>
+                                        </div>
+                                        <p class="mt-3 text-muted small">Cargando tus alertas...</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -131,12 +321,23 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
     
     <!-- App Scripts -->
-    <script src="../config/firebase-config.js?v=1.2"></script>
-    <script src="../config/env-loader.js?v=1.2"></script>
-    <script src="../utils/Validator.js?v=1.2"></script>
-    <script src="../services/FirebaseService.js?v=1.2"></script>
-    <script src="../repositories/AuthRepository.js?v=1.2"></script>
-    <script src="../controllers/AuthController.js?v=1.2"></script>
-    <script src="../assets/js/dashboard.js?v=1.4"></script>
+    <script src="../config/firebase-config.js?v=2.9"></script>
+    <script src="../config/env-loader.js?v=2.9"></script>
+    <script src="../utils/Validator.js?v=2.9"></script>
+    <script src="../utils/RoleManager.js?v=3.0"></script>
+    <script src="../utils/NavbarUtils.js?v=3.0"></script>
+    <script src="../models/User.js?v=2.9"></script>
+    <script src="../models/Alert.js?v=2.9"></script>
+    <script src="../models/Location.js?v=2.9"></script>
+    <script src="../services/FirebaseService.js?v=2.9"></script>
+    <script src="../repositories/AuthRepository.js?v=2.9"></script>
+    <script src="../repositories/UserRepository.js?v=2.9"></script>
+    <script src="../repositories/AlertRepository.js?v=2.9"></script>
+    <script src="../repositories/LocationRepository.js?v=2.9"></script>
+    <script src="../controllers/AuthController.js?v=2.9"></script>
+    <script src="../controllers/UserController.js?v=2.9"></script>
+    <script src="../controllers/AlertController.js?v=2.9"></script>
+    <script src="../controllers/LocationController.js?v=2.9"></script>
+    <script src="../assets/js/dashboard.js?v=3.0"></script>
 </body>
 </html>
