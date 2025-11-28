@@ -80,6 +80,36 @@ class AuthRepository {
                 console.warn('⚠️ No se pudo enviar email de verificación:', emailError.message);
             }
 
+            // Guardar usuario en Firestore si está disponible
+            try {
+                const firestore = this.#firebaseService.getFirestore();
+                if (firestore) {
+                    const userData = {
+                        email: user.email,
+                        displayName: displayName || '',
+                        emailVerified: user.emailVerified,
+                        role: 'user', // Por defecto todos son usuarios
+                        activo: true,
+                        regionesInteres: [],
+                        preferenciasNotificaciones: {
+                            activas: true,
+                            email: true,
+                            push: false,
+                            tiposAlertas: [],
+                            severidadMinima: 'leve'
+                        },
+                        contadorAlertas: 0,
+                        fechaCreacion: new Date(),
+                        fechaActualizacion: new Date()
+                    };
+                    await firestore.collection('users').doc(user.uid).set(userData);
+                    console.log('✓ Usuario guardado en Firestore');
+                }
+            } catch (firestoreError) {
+                console.warn('⚠️ No se pudo guardar usuario en Firestore:', firestoreError.message);
+                // No fallar el registro si Firestore falla
+            }
+
             return {
                 success: true,
                 user: {
@@ -294,5 +324,10 @@ class AuthRepository {
 // Exportar la clase
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = AuthRepository;
+}
+
+// Exponer al objeto window para uso en navegador
+if (typeof window !== 'undefined') {
+    window.AuthRepository = AuthRepository;
 }
 
