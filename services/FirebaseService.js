@@ -46,6 +46,12 @@ class FirebaseService {
     #firestore = null;
 
     /**
+     * Instancia de Firebase Storage
+     * @private
+     */
+    #firebaseStorage = null;
+
+    /**
      * Estado de inicialización
      * @private
      */
@@ -128,6 +134,17 @@ class FirebaseService {
             } catch (firestoreError) {
                 console.warn('⚠️ No se pudo inicializar Firestore (puede que no esté habilitado):', firestoreError.message);
                 console.warn('⚠️ La aplicación funcionará pero sin acceso a Firestore');
+                // No lanzamos error, solo advertimos
+            }
+
+            // Inicializar Firebase Storage (con manejo de errores)
+            try {
+                if (firebase.storage) {
+                    this.#firebaseStorage = firebase.storage();
+                    console.log('✓ Firebase Storage configurado');
+                }
+            } catch (storageError) {
+                console.warn('⚠️ No se pudo inicializar Storage (puede que no esté habilitado):', storageError.message);
                 // No lanzamos error, solo advertimos
             }
 
@@ -247,6 +264,30 @@ class FirebaseService {
     }
 
     /**
+     * Obtiene la instancia de Firebase Storage
+     * @returns {firebase.storage.Storage|null} Instancia de Storage o null si no está disponible
+     * @throws {Error} Si Firebase no está inicializado
+     */
+    getStorage() {
+        if (!this.#initialized) {
+            throw new Error('Firebase no está inicializado. Llama a initialize() primero.');
+        }
+        if (!this.#firebaseStorage) {
+            console.warn('⚠️ Firebase Storage no está disponible. Verifica que esté habilitado en Firebase Console.');
+            return null;
+        }
+        return this.#firebaseStorage;
+    }
+
+    /**
+     * Verifica si Storage está disponible
+     * @returns {boolean} True si Storage está disponible
+     */
+    isStorageAvailable() {
+        return this.#initialized && this.#firebaseStorage !== null;
+    }
+
+    /**
      * Observa cambios en el estado de autenticación
      * @param {Function} callback - Función a ejecutar cuando cambie el estado
      * @returns {Function} Función para cancelar la observación
@@ -263,5 +304,10 @@ class FirebaseService {
 // Exportar la clase
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = FirebaseService;
+}
+
+// Exponer al objeto window para uso en navegador
+if (typeof window !== 'undefined') {
+    window.FirebaseService = FirebaseService;
 }
 
