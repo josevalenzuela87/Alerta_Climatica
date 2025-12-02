@@ -89,7 +89,7 @@ async function initializeApp() {
 
         // 4. Crear controlador de alertas
         const alertRepository = new AlertRepository(firebaseService);
-        alertController = new AlertController(alertRepository);
+        alertController = new AlertController(alertRepository, firebaseService);
 
         console.log('✓ Aplicación inicializada correctamente');
 

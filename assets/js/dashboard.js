@@ -45,7 +45,21 @@ function checkDependencies() {
         return false;
     }
     
-    console.log('✓ Todas las dependencias cargadas correctamente');
+    // Verificar dependencias opcionales de notificaciones (no bloquean la inicialización)
+    const optionalDeps = {
+        'Notification': typeof Notification !== 'undefined',
+        'NotificationRepository': typeof NotificationRepository !== 'undefined',
+        'NotificationController': typeof NotificationController !== 'undefined',
+        'NotificationService': typeof NotificationService !== 'undefined'
+    };
+    
+    const missingOptional = Object.keys(optionalDeps).filter(dep => !optionalDeps[dep]);
+    if (missingOptional.length > 0) {
+        console.warn('⚠️ Dependencias opcionales de notificaciones no disponibles:', missingOptional);
+        console.warn('⚠️ Las notificaciones push no estarán disponibles');
+    }
+    
+    console.log('✓ Todas las dependencias críticas cargadas correctamente');
     return true;
 }
 
@@ -116,6 +130,39 @@ async function initializeApp() {
             return;
         }
 
+        // 7.1. Inicializar notificaciones push si el usuario no es admin (opcional, no bloquea la app)
+        if (currentUser && 
+            typeof NotificationService !== 'undefined' && 
+            typeof NotificationController !== 'undefined' && 
+            typeof NotificationRepository !== 'undefined' &&
+            typeof Notification !== 'undefined' &&
+            typeof firebase !== 'undefined' &&
+            firebase.messaging &&
+            currentUser.role !== 'admin') {
+            try {
+                const notificationRepository = new NotificationRepository(firebaseService);
+                const notificationController = new NotificationController(
+                    notificationRepository, 
+                    firebaseService
+                );
+                const notificationService = new NotificationService(
+                    firebaseService, 
+                    notificationController
+                );
+                
+                // Inicializar de forma asíncrona sin bloquear
+                notificationService.initialize(currentUser.uid).then(() => {
+                    console.log('✓ Notificaciones push inicializadas');
+                }).catch((notifError) => {
+                    console.warn('⚠️ No se pudieron inicializar notificaciones:', notifError);
+                });
+            } catch (notifError) {
+                console.warn('⚠️ Error al configurar notificaciones (no crítico):', notifError);
+            }
+        } else {
+            console.log('ℹ️ Notificaciones push no disponibles (opcional)');
+        }
+
         // 8. Cargar datos del usuario en la UI
         loadUserData();
 
@@ -181,6 +228,7 @@ function loadUserData() {
 // Variables adicionales para dashboard
 let alertController = null;
 let locationController = null;
+let allLocations = []; // Para mapeo de regiones
 
 /**
  * Configura los permisos basados en el rol del usuario
@@ -437,8 +485,19 @@ async function loadRecentUsers() {
  */
 async function loadUserDashboard() {
     try {
+        // RECARGAR datos del usuario desde Firestore para asegurar que tenemos la información más actualizada
+        console.log('🔄 Recargando datos del usuario desde Firestore...');
+        const updatedUser = await userController.getCurrentUser();
+        if (updatedUser) {
+            currentUser = updatedUser;
+            console.log('✓ Usuario actualizado desde Firestore');
+        }
+        
         // Verificar si tiene regiones seleccionadas
         const regionesInteres = currentUser.regionesInteres || [];
+        
+        console.log('🔍 Debug loadUserDashboard: regionesInteres del usuario:', regionesInteres);
+        console.log('🔍 Debug loadUserDashboard: tipo de regionesInteres:', typeof regionesInteres, Array.isArray(regionesInteres));
         
         const alertInfo = document.getElementById('userAlertInfo');
         if (regionesInteres.length === 0 && alertInfo) {
@@ -494,25 +553,159 @@ async function loadUserAlerts(regionesInteres) {
         // Filtrar alertas por regiones de interés del usuario
         let userAlerts = [];
         
-        if (regionesInteres.length === 0) {
-            // Si no tiene regiones seleccionadas, mostrar todas las alertas activas
-            userAlerts = result.alerts.filter(a => a.status === 'activa' || a.activa);
+        // Normalizar regionesInteres - asegurar que sea un array y convertir a strings
+        const regionesInteresNormalizado = Array.isArray(regionesInteres) 
+            ? regionesInteres.map(r => {
+                // Si es un objeto, extraer el id; si es string, usarlo directamente
+                return typeof r === 'object' && r !== null && r.id ? String(r.id) : String(r);
+            }).filter(Boolean)
+            : [];
+        
+        console.log('🔍 Debug: Regiones de interés del usuario (raw):', regionesInteres);
+        console.log('🔍 Debug: Regiones de interés normalizadas:', regionesInteresNormalizado);
+        console.log('🔍 Debug: Total de alertas recibidas:', result.alerts.length);
+        console.log('🔍 Debug: Ejemplos de alertas:', result.alerts.slice(0, 3).map(a => ({
+            titulo: a.titulo,
+            ubicaciones: a.ubicaciones,
+            status: a.status
+        })));
+        
+        if (regionesInteresNormalizado.length === 0) {
+            // Si no tiene regiones seleccionadas, no mostrar alertas
+            console.log('⚠️ Usuario no tiene regiones de interés configuradas');
+            userAlerts = [];
         } else {
-            // Filtrar por regiones de interés
-            userAlerts = result.alerts.filter(alert => {
-                // Verificar que la alerta esté activa (puede ser 'activa' o status === 'activa')
-                const isActive = alert.status === 'activa' || alert.activa === true;
-                if (!isActive) return false;
-                
-                // Si la alerta tiene ubicaciones asignadas
-                if (alert.ubicaciones && Array.isArray(alert.ubicaciones) && alert.ubicaciones.length > 0) {
-                    // Verificar si alguna de las ubicaciones de la alerta está en las regiones de interés del usuario
-                    return alert.ubicaciones.some(ubicacionId => regionesInteres.includes(ubicacionId));
+            // Cargar ubicaciones para poder hacer el mapeo de region/ciudad a IDs (compatibilidad con alertas viejas)
+            let locationsMap = {};
+            try {
+                if (!locationController) {
+                    const firebaseService = FirebaseService.getInstance();
+                    const locationRepository = new LocationRepository(firebaseService);
+                    locationController = new LocationController(locationRepository);
                 }
-                // Si no tiene ubicaciones específicas, incluirla (alertas generales)
+                const locationsResult = await locationController.getAllLocations();
+                if (locationsResult.success && locationsResult.locations) {
+                    // Crear un mapa de ubicaciones por nombre para búsqueda rápida
+                    locationsResult.locations.forEach(loc => {
+                        const key = `${loc.nombre}_${loc.ciudad || ''}_${loc.estado || ''}`.toLowerCase().trim();
+                        if (key) locationsMap[key] = loc.id;
+                        
+                        // También mapear solo por nombre
+                        if (loc.nombre) {
+                            const nombreKey = loc.nombre.toLowerCase().trim();
+                            if (nombreKey && !locationsMap[nombreKey]) {
+                                locationsMap[nombreKey] = loc.id;
+                            }
+                        }
+                        
+                        // Mapear por ciudad si existe
+                        if (loc.ciudad) {
+                            const ciudadKey = loc.ciudad.toLowerCase().trim();
+                            if (ciudadKey && !locationsMap[ciudadKey]) {
+                                locationsMap[ciudadKey] = loc.id;
+                            }
+                        }
+                        
+                        // Mapear por estado si existe
+                        if (loc.estado) {
+                            const estadoKey = loc.estado.toLowerCase().trim();
+                            if (estadoKey && !locationsMap[estadoKey]) {
+                                locationsMap[estadoKey] = loc.id;
+                            }
+                        }
+                    });
+                    console.log('🗺️ Mapa de ubicaciones cargado:', Object.keys(locationsMap).length, 'entradas');
+                }
+            } catch (error) {
+                console.warn('⚠️ No se pudieron cargar ubicaciones para mapeo:', error);
+            }
+            
+            // Filtrar por regiones de interés - SOLO mostrar alertas que coincidan con las regiones del usuario
+            userAlerts = result.alerts.filter(alert => {
+                // Verificar que la alerta esté activa
+                const isActive = alert.status === 'activa' || alert.activa === true;
+                if (!isActive) {
+                    return false;
+                }
+                
+                // La alerta puede tener ubicaciones asignadas o usar region/ciudad (compatibilidad)
+                let alertUbicacionesIds = [];
+                
+                if (alert.ubicaciones && Array.isArray(alert.ubicaciones) && alert.ubicaciones.length > 0) {
+                    // Normalizar los IDs de ubicaciones de la alerta a strings
+                    alertUbicacionesIds = alert.ubicaciones.map(u => {
+                        // Si es un objeto, extraer el id; si es string, usarlo directamente
+                        return typeof u === 'object' && u !== null && u.id ? String(u.id) : String(u);
+                    }).filter(Boolean);
+                } else if (alert.region || alert.ciudad) {
+                    // Fallback: si la alerta no tiene ubicaciones pero tiene region/ciudad,
+                    // buscar la ubicación correspondiente
+                    const regionNombre = alert.region || alert.ciudad || '';
+                    if (regionNombre) {
+                        // Buscar ubicación por nombre
+                        const locationId = locationsMap[regionNombre.toLowerCase()];
+                        if (locationId) {
+                            alertUbicacionesIds = [String(locationId)];
+                            console.log(`🔄 Alerta "${alert.titulo}" usa fallback: región "${regionNombre}" → ubicación ID: ${locationId}`);
+                        } else {
+                            // Buscar por nombre completo
+                            const fullKey = `${regionNombre}_${alert.ciudad || ''}_${alert.region || ''}`.toLowerCase();
+                            const locationId2 = locationsMap[fullKey];
+                            if (locationId2) {
+                                alertUbicacionesIds = [String(locationId2)];
+                                console.log(`🔄 Alerta "${alert.titulo}" usa fallback: "${fullKey}" → ubicación ID: ${locationId2}`);
+                            }
+                        }
+                    }
+                }
+                
+                if (alertUbicacionesIds.length === 0) {
+                    console.log(`❌ Alerta "${alert.titulo}" NO tiene ubicaciones asignadas ni region/ciudad válida`);
+                    return false;
+                }
+                
+                console.log(`🔍 Debug: Alerta "${alert.titulo}" - ubicaciones IDs:`, alertUbicacionesIds);
+                
+                // Verificar si alguna de las ubicaciones de la alerta está en las regiones de interés del usuario
+                const hasLocationMatch = alertUbicacionesIds.some(ubicacionId => 
+                    regionesInteresNormalizado.includes(ubicacionId)
+                );
+                
+                if (!hasLocationMatch) {
+                    console.log(`❌ Alerta "${alert.titulo}" NO coincide en ubicaciones (ubicaciones: ${alertUbicacionesIds.join(', ')}, usuario tiene: ${regionesInteresNormalizado.join(', ')})`);
+                    return false;
+                }
+                
+                // Filtrar por severidad mínima configurada en preferencias del usuario
+                const preferencias = currentUser.preferenciasNotificaciones || {};
+                const severidadMinima = preferencias.severidadMinima || 'leve';
+                
+                // Definir orden de severidad (mayor índice = más severa)
+                const severidadOrder = {
+                    'leve': 1,
+                    'moderada': 2,
+                    'grave': 3,
+                    'critica': 4
+                };
+                
+                const alertSeveridad = alert.severidad || 'leve';
+                const alertSeveridadOrder = severidadOrder[alertSeveridad] || 1;
+                const minimaSeveridadOrder = severidadOrder[severidadMinima] || 1;
+                
+                // Solo incluir si la severidad de la alerta es igual o mayor a la mínima configurada
+                const hasSeverityMatch = alertSeveridadOrder >= minimaSeveridadOrder;
+                
+                if (!hasSeverityMatch) {
+                    console.log(`❌ Alerta "${alert.titulo}" NO cumple severidad mínima (severidad: ${alertSeveridad}, mínima requerida: ${severidadMinima})`);
+                    return false;
+                }
+                
+                console.log(`✅ Alerta "${alert.titulo}" incluida (ubicaciones: ${alertUbicacionesIds.join(', ')}, severidad: ${alertSeveridad})`);
                 return true;
             });
         }
+        
+        console.log(`✅ Total de alertas filtradas para el usuario: ${userAlerts.length} de ${result.alerts.length}`);
 
         // Ordenar por fecha más reciente
         userAlerts.sort((a, b) => {
