@@ -20,14 +20,22 @@ class AlertController {
     #alertRepository;
 
     /**
+     * Instancia de FirebaseService
+     * @private
+     */
+    #firebaseService;
+
+    /**
      * Constructor
      * @param {AlertRepository} alertRepository - Instancia del repositorio
+     * @param {FirebaseService} firebaseService - Instancia del servicio Firebase (opcional para notificaciones)
      */
-    constructor(alertRepository) {
+    constructor(alertRepository, firebaseService = null) {
         if (!alertRepository) {
             throw new Error('AlertController requiere una instancia de AlertRepository');
         }
         this.#alertRepository = alertRepository;
+        this.#firebaseService = firebaseService;
         console.log('✓ AlertController: Instancia creada');
     }
 
@@ -120,6 +128,7 @@ class AlertController {
                 status: formData.status || 'activa',
                 region: formData.region?.trim(),
                 ciudad: formData.ciudad?.trim(),
+                ubicaciones: Array.isArray(formData.ubicaciones) ? formData.ubicaciones : (formData.ubicacion ? [formData.ubicacion] : []),
                 fechaInicio: formData.fechaInicio || new Date().toISOString(),
                 fechaFin: formData.fechaFin || null,
                 recomendaciones: Array.isArray(formData.recomendaciones) 
@@ -133,6 +142,16 @@ class AlertController {
             if (result.success) {
                 // Obtener la alerta recién creada
                 const createdAlert = await this.#alertRepository.getById(result.id);
+                
+                // Enviar notificaciones a usuarios afectados (si hay ubicaciones asignadas)
+                if (createdAlert && createdAlert.ubicaciones && createdAlert.ubicaciones.length > 0) {
+                    try {
+                        await this.#sendNotificationsToUsers(createdAlert);
+                    } catch (notifError) {
+                        console.warn('⚠️ Error al enviar notificaciones (no crítico):', notifError);
+                        // No fallar la creación de la alerta si las notificaciones fallan
+                    }
+                }
                 
                 return {
                     success: true,
@@ -264,11 +283,68 @@ class AlertController {
     onAlertsChanged(callback, filters = {}) {
         return this.#alertRepository.onAlertsChanged(callback, filters);
     }
-}
 
-// Exportar la clase
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = AlertController;
+    /**
+     * Envía notificaciones a usuarios afectados por una nueva alerta
+     * @private
+     * @async
+     * @param {Alert} alert - Alerta creada
+     */
+    async #sendNotificationsToUsers(alert) {
+        try {
+            // Verificar que las clases necesarias estén disponibles
+            if (typeof UserRepository === 'undefined' || 
+                typeof NotificationRepository === 'undefined' || 
+                typeof NotificationController === 'undefined' || 
+                !this.#firebaseService) {
+                console.warn('⚠️ Servicios de notificación no disponibles');
+                return;
+            }
+
+            // Obtener todos los usuarios
+            const userRepository = new UserRepository(this.#firebaseService);
+            const usersResult = await userRepository.getAll();
+            
+            if (!usersResult || usersResult.length === 0) {
+                return;
+            }
+
+            // Filtrar usuarios por ubicaciones de interés que coincidan con la alerta
+            const alertLocations = alert.ubicaciones || [];
+            const targetUsers = usersResult.filter(user => {
+                // Solo usuarios activos con notificaciones habilitadas
+                if (!user.activo) return false;
+                
+                const prefs = user.preferenciasNotificaciones || {};
+                if (prefs.activas === false) return false;
+
+                // Verificar si el usuario tiene alguna región de interés que coincida
+                const userRegions = user.regionesInteres || [];
+                return userRegions.some(userRegionId => 
+                    alertLocations.includes(String(userRegionId))
+                );
+            });
+
+            if (targetUsers.length === 0) {
+                console.log('ℹ️ No hay usuarios para notificar');
+                return;
+            }
+
+            // Crear controlador de notificaciones y enviar
+            const notificationRepository = new NotificationRepository(this.#firebaseService);
+            const notificationController = new NotificationController(
+                notificationRepository, 
+                this.#firebaseService
+            );
+            
+            const notifResult = await notificationController.notifyNewAlert(alert, targetUsers);
+            console.log(`✓ ${notifResult.count} notificaciones enviadas a usuarios afectados`);
+
+        } catch (error) {
+            console.error('❌ Error al enviar notificaciones:', error);
+            throw error;
+        }
+    }
 }
 
 // Exponer al objeto window para uso en navegador
