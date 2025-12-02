@@ -319,6 +319,8 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <!-- Firebase Cloud Messaging (después de firebase-app) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js"></script>
     
     <!-- App Scripts -->
     <script src="../config/firebase-config.js?v=2.9"></script>
@@ -329,15 +331,19 @@
     <script src="../models/User.js?v=2.9"></script>
     <script src="../models/Alert.js?v=2.9"></script>
     <script src="../models/Location.js?v=2.9"></script>
+    <script src="../models/Notification.js?v=1.0"></script>
     <script src="../services/FirebaseService.js?v=2.9"></script>
     <script src="../repositories/AuthRepository.js?v=2.9"></script>
     <script src="../repositories/UserRepository.js?v=2.9"></script>
     <script src="../repositories/AlertRepository.js?v=2.9"></script>
     <script src="../repositories/LocationRepository.js?v=2.9"></script>
+    <script src="../repositories/NotificationRepository.js?v=1.0"></script>
     <script src="../controllers/AuthController.js?v=2.9"></script>
     <script src="../controllers/UserController.js?v=2.9"></script>
-    <script src="../controllers/AlertController.js?v=2.9"></script>
+    <script src="../controllers/AlertController.js?v=3.0"></script>
     <script src="../controllers/LocationController.js?v=2.9"></script>
-    <script src="../assets/js/dashboard.js?v=3.0"></script>
+    <script src="../controllers/NotificationController.js?v=1.0"></script>
+    <script src="../services/NotificationService.js?v=1.0"></script>
+    <script src="../assets/js/dashboard.js?v=3.8"></script>
 </body>
 </html>
