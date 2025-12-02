@@ -281,6 +281,7 @@ async function loadUserData() {
     document.getElementById('notificacionesActivas').checked = prefs.activas !== false;
     document.getElementById('notificacionesEmail').checked = prefs.email !== false;
     document.getElementById('severidadMinima').value = prefs.severidadMinima || 'leve';
+    // push se manejará automáticamente cuando se inicialice NotificationService
     
     // Mostrar indicador si se está editando otro usuario
     if (profileUser && profileUser.uid !== currentUser.uid) {
@@ -574,11 +575,12 @@ async function handlePreferencesSubmit(event) {
     event.preventDefault();
 
     // Obtener preferencias de notificaciones
+    const currentPrefs = profileUser?.preferenciasNotificaciones || currentUser?.preferenciasNotificaciones || {};
     const preferenciasNotificaciones = {
         activas: document.getElementById('notificacionesActivas').checked,
         email: document.getElementById('notificacionesEmail').checked,
-        push: false, // Por ahora deshabilitado
-        tiposAlertas: [],
+        push: currentPrefs.push || false, // Mantener el valor actual o false por defecto
+        tiposAlertas: currentPrefs.tiposAlertas || [],
         severidadMinima: document.getElementById('severidadMinima').value
     };
 

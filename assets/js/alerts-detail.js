@@ -155,6 +155,36 @@ function setupEventListeners() {
     document.getElementById('logoutBtn')?.addEventListener('click', handleLogout);
     document.getElementById('navbarLogoutBtn')?.addEventListener('click', handleLogout);
     
+    // Asegurar que el enlace "Mi Perfil" funcione correctamente
+    const profileLinks = document.querySelectorAll('a[href*="profile.html"], a.dropdown-item[href*="profile"]');
+    profileLinks.forEach(profileLink => {
+        // Calcular la ruta correcta basada en la ubicación actual
+        const currentPath = window.location.pathname;
+        let profilePath = '';
+        
+        // Si estamos en views/alerts/detail.html, la ruta es ../users/profile.html
+        if (currentPath.includes('/alerts/detail.html')) {
+            profilePath = '../users/profile.html';
+        } else if (currentPath.includes('/alerts/')) {
+            profilePath = '../users/profile.html';
+        } else if (currentPath.includes('/views/')) {
+            profilePath = 'users/profile.html';
+        } else {
+            profilePath = 'views/users/profile.html';
+        }
+        
+        // Actualizar el href
+        profileLink.setAttribute('href', profilePath);
+        
+        // Añadir event listener para forzar navegación
+        profileLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            console.log('🔗 Navegando a perfil desde:', currentPath);
+            console.log('🔗 Ruta de perfil:', profilePath);
+            window.location.href = profilePath;
+        });
+    });
+    
     // Cargar datos del usuario en navbar
     loadUserDataInNavbar();
     document.getElementById('editBtn')?.addEventListener('click', handleEdit);
