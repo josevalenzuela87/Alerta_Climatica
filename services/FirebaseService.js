@@ -52,6 +52,12 @@ class FirebaseService {
     #firebaseStorage = null;
 
     /**
+     * Instancia de Firebase Cloud Messaging
+     * @private
+     */
+    #firebaseMessaging = null;
+
+    /**
      * Estado de inicialización
      * @private
      */
@@ -145,6 +151,17 @@ class FirebaseService {
                 }
             } catch (storageError) {
                 console.warn('⚠️ No se pudo inicializar Storage (puede que no esté habilitado):', storageError.message);
+                // No lanzamos error, solo advertimos
+            }
+
+            // Inicializar Firebase Cloud Messaging (con manejo de errores)
+            try {
+                if (firebase.messaging) {
+                    this.#firebaseMessaging = firebase.messaging();
+                    console.log('✓ Firebase Cloud Messaging configurado');
+                }
+            } catch (messagingError) {
+                console.warn('⚠️ No se pudo inicializar Messaging (puede que no esté habilitado):', messagingError.message);
                 // No lanzamos error, solo advertimos
             }
 
@@ -285,6 +302,30 @@ class FirebaseService {
      */
     isStorageAvailable() {
         return this.#initialized && this.#firebaseStorage !== null;
+    }
+
+    /**
+     * Obtiene la instancia de Firebase Cloud Messaging
+     * @returns {firebase.messaging.Messaging|null} Instancia de Messaging o null si no está disponible
+     * @throws {Error} Si Firebase no está inicializado
+     */
+    getMessaging() {
+        if (!this.#initialized) {
+            throw new Error('Firebase no está inicializado. Llama a initialize() primero.');
+        }
+        if (!this.#firebaseMessaging) {
+            console.warn('⚠️ Firebase Cloud Messaging no está disponible. Verifica que esté habilitado en Firebase Console.');
+            return null;
+        }
+        return this.#firebaseMessaging;
+    }
+
+    /**
+     * Verifica si Messaging está disponible
+     * @returns {boolean} True si Messaging está disponible
+     */
+    isMessagingAvailable() {
+        return this.#initialized && this.#firebaseMessaging !== null;
     }
 
     /**
